@@ -11,6 +11,8 @@ export interface RepoConfig {
   branch?: string;
   /** Tag to checkout (overrides branch if specified) */
   tag?: string;
+  /** Specific commit to checkout (overrides tag and branch) */
+  commit?: string;
   /** Sparse checkout paths - if set, only these paths are checked out */
   sparse?: string[];
   /** Description of what this repo contains */

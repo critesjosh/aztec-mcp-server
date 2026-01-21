@@ -58,14 +58,25 @@ export async function cloneRepo(
 
   const git: SimpleGit = simpleGit();
 
-  // Determine ref to checkout: tag takes precedence over branch
-  const ref = config.tag || config.branch;
-  const refType = config.tag ? "tag" : "branch";
+  // Determine ref to checkout: commit > tag > branch
+  const ref = config.commit || config.tag || config.branch;
+  const refType = config.commit ? "commit" : config.tag ? "tag" : "branch";
 
   if (config.sparse && config.sparse.length > 0) {
     // Clone with sparse checkout for large repos
-    // For tags, we need to clone without -b first, then checkout the tag
-    if (config.tag) {
+    if (config.commit) {
+      // For commits, we need full history to fetch the commit
+      await git.clone(config.url, repoPath, [
+        "--filter=blob:none",
+        "--sparse",
+        "--no-checkout",
+      ]);
+
+      const repoGit = simpleGit(repoPath);
+      await repoGit.raw(["sparse-checkout", "set", ...config.sparse]);
+      await repoGit.fetch(["origin", config.commit]);
+      await repoGit.checkout(config.commit);
+    } else if (config.tag) {
       await git.clone(config.url, repoPath, [
         "--filter=blob:none",
         "--sparse",
@@ -90,8 +101,14 @@ export async function cloneRepo(
 
     return `Cloned ${config.name} @ ${ref} (${refType}, sparse: ${config.sparse.join(", ")})`;
   } else {
-    // Shallow clone for smaller repos
-    if (config.tag) {
+    // Clone for smaller repos
+    if (config.commit) {
+      // For commits, clone and checkout specific commit
+      await git.clone(config.url, repoPath, ["--no-checkout"]);
+      const repoGit = simpleGit(repoPath);
+      await repoGit.fetch(["origin", config.commit]);
+      await repoGit.checkout(config.commit);
+    } else if (config.tag) {
       // Clone and checkout tag
       await git.clone(config.url, repoPath, ["--no-checkout"]);
       const repoGit = simpleGit(repoPath);
@@ -165,4 +182,28 @@ export async function getReposStatus(
   }
 
   return status;
+}
+
+/**
+ * Get the Noir submodule commit from aztec-packages
+ * Returns the commit hash that aztec-packages uses for noir
+ */
+export async function getNoirCommitFromAztec(): Promise<string | null> {
+  const aztecPath = getRepoPath("aztec-packages");
+
+  if (!isRepoCloned("aztec-packages")) {
+    return null;
+  }
+
+  const git = simpleGit(aztecPath);
+
+  try {
+    // Get the submodule commit from the git tree
+    const result = await git.raw(["ls-tree", "HEAD", "noir/noir-repo"]);
+    // Output format: "160000 commit <hash>\tnoir/noir-repo"
+    const match = result.match(/^160000\s+commit\s+([a-f0-9]+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
 }
