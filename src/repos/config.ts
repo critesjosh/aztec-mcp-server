@@ -38,6 +38,7 @@ const BASE_REPOS: Omit<RepoConfig, "tag">[] = [
       "noir-projects/aztec-nr",
       "noir-projects/noir-contracts",
       "yarn-project",
+      "barretenberg/ts/src",
     ],
     description: "Main Aztec monorepo - documentation, aztec-nr framework, and reference contracts",
     searchPatterns: {
