@@ -32,7 +32,6 @@ const BASE_REPOS: Omit<RepoConfig, "tag">[] = [
   {
     name: "aztec-packages",
     url: "https://github.com/AztecProtocol/aztec-packages",
-    branch: "master",
     sparse: [
       "docs/docs",
       "noir-projects/aztec-nr",
@@ -49,7 +48,6 @@ const BASE_REPOS: Omit<RepoConfig, "tag">[] = [
   {
     name: "aztec-examples",
     url: "https://github.com/AztecProtocol/aztec-examples",
-    branch: "main",
     description: "Official Aztec contract examples and sample applications",
     searchPatterns: {
       code: ["*.nr", "*.ts"],
@@ -59,7 +57,6 @@ const BASE_REPOS: Omit<RepoConfig, "tag">[] = [
   {
     name: "aztec-starter",
     url: "https://github.com/AztecProtocol/aztec-starter",
-    branch: "main",
     description: "Aztec starter template with deployment scripts and TypeScript integration",
     searchPatterns: {
       code: ["*.nr", "*.ts"],
