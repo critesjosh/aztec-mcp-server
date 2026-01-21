@@ -4,8 +4,8 @@ node_modules/
 # Build output
 dist/
 
-# Cloned repositories
-repos/
+# Cloned repositories (at root level only)
+/repos/
 
 # Logs
 *.log
