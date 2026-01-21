@@ -84,7 +84,7 @@ const BASE_REPOS: Omit<RepoConfig, "tag">[] = [
   {
     name: "noir-examples",
     url: "https://github.com/noir-lang/noir-examples",
-    branch: "main",
+    branch: "master",
     description: "Official Noir language examples and tutorials",
     searchPatterns: {
       code: ["*.nr", "*.ts"],
