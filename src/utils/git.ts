@@ -46,12 +46,15 @@ export async function cloneRepo(
   ensureReposDir();
   const repoPath = getRepoPath(config.name);
 
-  // Remove existing if force is set
-  if (force && existsSync(repoPath)) {
+  // Check if we need to re-clone due to version mismatch
+  const versionMismatch = await needsReclone(config);
+
+  // Remove existing if force is set or version changed
+  if ((force || versionMismatch) && existsSync(repoPath)) {
     rmSync(repoPath, { recursive: true, force: true });
   }
 
-  // If already cloned and not forcing, just update
+  // If already cloned and version matches, just update
   if (isRepoCloned(config.name)) {
     return await updateRepo(config.name);
   }
@@ -165,6 +168,68 @@ export async function getRepoCommit(repoName: string): Promise<string | null> {
   const git = simpleGit(repoPath);
   const log = await git.log(["-1"]);
   return log.latest?.hash.substring(0, 7) || null;
+}
+
+/**
+ * Get the full commit hash for a repo
+ */
+export async function getRepoFullCommit(repoName: string): Promise<string | null> {
+  const repoPath = getRepoPath(repoName);
+
+  if (!isRepoCloned(repoName)) {
+    return null;
+  }
+
+  const git = simpleGit(repoPath);
+  const log = await git.log(["-1"]);
+  return log.latest?.hash || null;
+}
+
+/**
+ * Get the current tag for a repo (if HEAD points to a tag)
+ */
+export async function getRepoTag(repoName: string): Promise<string | null> {
+  const repoPath = getRepoPath(repoName);
+
+  if (!isRepoCloned(repoName)) {
+    return null;
+  }
+
+  const git = simpleGit(repoPath);
+
+  try {
+    // Get tag pointing to HEAD
+    const result = await git.raw(["describe", "--tags", "--exact-match", "HEAD"]);
+    return result.trim() || null;
+  } catch {
+    // HEAD is not at a tag
+    return null;
+  }
+}
+
+/**
+ * Check if the cloned repo matches the requested config
+ * Returns true if re-clone is needed
+ */
+export async function needsReclone(config: RepoConfig): Promise<boolean> {
+  if (!isRepoCloned(config.name)) {
+    return true; // Not cloned, need to clone
+  }
+
+  // If a specific commit is requested, check if we're at that commit
+  if (config.commit) {
+    const currentCommit = await getRepoFullCommit(config.name);
+    return !currentCommit?.startsWith(config.commit.substring(0, 7));
+  }
+
+  // If a tag is requested, check if we're at that tag
+  if (config.tag) {
+    const currentTag = await getRepoTag(config.name);
+    return currentTag !== config.tag;
+  }
+
+  // For branches, we don't force re-clone (just update)
+  return false;
 }
 
 /**
