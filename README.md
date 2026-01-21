@@ -15,13 +15,13 @@ An MCP (Model Context Protocol) server that provides local access to Aztec docum
 ### With npx (recommended)
 
 ```bash
-npx @aztec/mcp-server
+npx aztec-mcp-server
 ```
 
 ### Global install
 
 ```bash
-npm install -g @aztec/mcp-server
+npm install -g aztec-mcp-server
 aztec-mcp
 ```
 
@@ -36,7 +36,7 @@ Add to your `.mcp.json`:
   "mcpServers": {
     "aztec-local": {
       "command": "npx",
-      "args": ["-y", "@aztec/mcp-server"]
+      "args": ["-y", "aztec-mcp-server"]
     }
   }
 }
@@ -122,7 +122,9 @@ Read any file from cloned repositories.
 
 - `path` (string, required): File path relative to repos directory
 
-## Storage Location
+## Configuration Options
+
+### Storage Location
 
 Repositories are cloned to `~/.aztec-mcp/repos/` by default.
 
@@ -133,9 +135,27 @@ Override with the `AZTEC_MCP_REPOS_DIR` environment variable:
   "mcpServers": {
     "aztec-local": {
       "command": "npx",
-      "args": ["-y", "@aztec/mcp-server"],
+      "args": ["-y", "aztec-mcp-server"],
       "env": {
         "AZTEC_MCP_REPOS_DIR": "/custom/path"
+      }
+    }
+  }
+}
+```
+
+### Default Aztec Version
+
+Set the default Aztec version with the `AZTEC_DEFAULT_VERSION` environment variable:
+
+```json
+{
+  "mcpServers": {
+    "aztec-local": {
+      "command": "npx",
+      "args": ["-y", "aztec-mcp-server"],
+      "env": {
+        "AZTEC_DEFAULT_VERSION": "v3.0.0-devnet.6-plugin.1"
       }
     }
   }

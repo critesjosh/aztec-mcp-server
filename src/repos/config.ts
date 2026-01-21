@@ -22,8 +22,8 @@ export interface RepoConfig {
   };
 }
 
-/** Default Aztec version (tag) to use */
-export const DEFAULT_AZTEC_VERSION = "v3.0.0-devnet.6-patch.1";
+/** Default Aztec version (tag) to use - can be overridden via AZTEC_DEFAULT_VERSION env var */
+export const DEFAULT_AZTEC_VERSION = process.env.AZTEC_DEFAULT_VERSION || "v3.0.0-devnet.6-patch.1";
 
 /**
  * Base Aztec repository configurations (without version)
