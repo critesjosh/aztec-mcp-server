@@ -47,6 +47,18 @@ export async function syncRepos(options: {
 
   const results: SyncResult["repos"] = [];
 
+  async function syncRepo(config: RepoConfig, statusTransform?: (s: string) => string): Promise<void> {
+    try {
+      const status = await cloneRepo(config, force);
+      results.push({ name: config.name, status: statusTransform ? statusTransform(status) : status });
+    } catch (error) {
+      results.push({
+        name: config.name,
+        status: `Error: ${error instanceof Error ? error.message : String(error)}`,
+      });
+    }
+  }
+
   // Sort repos so aztec-packages is cloned first (needed to determine Noir version)
   const aztecPackages = reposToSync.find((r) => r.name === "aztec-packages");
   const noirRepos = reposToSync.filter((r) => r.url.includes("noir-lang"));
@@ -56,15 +68,7 @@ export async function syncRepos(options: {
 
   // Clone aztec-packages first if present
   if (aztecPackages) {
-    try {
-      const status = await cloneRepo(aztecPackages, force);
-      results.push({ name: aztecPackages.name, status });
-    } catch (error) {
-      results.push({
-        name: aztecPackages.name,
-        status: `Error: ${error instanceof Error ? error.message : String(error)}`,
-      });
-    }
+    await syncRepo(aztecPackages);
   }
 
   // Get the Noir commit from aztec-packages (if available)
@@ -72,38 +76,20 @@ export async function syncRepos(options: {
 
   // Clone Noir repos with the commit from aztec-packages
   for (const config of noirRepos) {
-    try {
-      // Apply the noir commit from aztec-packages to noir repo
-      const noirConfig: RepoConfig =
-        config.name === "noir" && noirCommit
-          ? { ...config, commit: noirCommit, branch: undefined }
-          : config;
+    const useAztecCommit = config.name === "noir" && noirCommit;
+    const noirConfig: RepoConfig = useAztecCommit
+      ? { ...config, commit: noirCommit, branch: undefined }
+      : config;
 
-      const status = await cloneRepo(noirConfig, force);
-      const finalStatus =
-        config.name === "noir" && noirCommit
-          ? status.replace("(branch", `(commit from aztec-packages`)
-          : status;
-      results.push({ name: config.name, status: finalStatus });
-    } catch (error) {
-      results.push({
-        name: config.name,
-        status: `Error: ${error instanceof Error ? error.message : String(error)}`,
-      });
-    }
+    await syncRepo(
+      noirConfig,
+      useAztecCommit ? (s) => s.replace("(commit", "(commit from aztec-packages") : undefined
+    );
   }
 
   // Clone other repos
   for (const config of otherRepos) {
-    try {
-      const status = await cloneRepo(config, force);
-      results.push({ name: config.name, status });
-    } catch (error) {
-      results.push({
-        name: config.name,
-        status: `Error: ${error instanceof Error ? error.message : String(error)}`,
-      });
-    }
+    await syncRepo(config);
   }
 
   const allSuccess = results.every(

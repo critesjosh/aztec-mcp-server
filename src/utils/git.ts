@@ -158,31 +158,16 @@ export async function updateRepo(repoName: string): Promise<string> {
 /**
  * Get the current commit hash for a repo
  */
-export async function getRepoCommit(repoName: string): Promise<string | null> {
-  const repoPath = getRepoPath(repoName);
-
+export async function getRepoCommit(repoName: string, full: boolean = false): Promise<string | null> {
   if (!isRepoCloned(repoName)) {
     return null;
   }
 
-  const git = simpleGit(repoPath);
+  const git = simpleGit(getRepoPath(repoName));
   const log = await git.log(["-1"]);
-  return log.latest?.hash.substring(0, 7) || null;
-}
-
-/**
- * Get the full commit hash for a repo
- */
-export async function getRepoFullCommit(repoName: string): Promise<string | null> {
-  const repoPath = getRepoPath(repoName);
-
-  if (!isRepoCloned(repoName)) {
-    return null;
-  }
-
-  const git = simpleGit(repoPath);
-  const log = await git.log(["-1"]);
-  return log.latest?.hash || null;
+  const hash = log.latest?.hash;
+  if (!hash) return null;
+  return full ? hash : hash.substring(0, 7);
 }
 
 /**
@@ -218,7 +203,7 @@ export async function needsReclone(config: RepoConfig): Promise<boolean> {
 
   // If a specific commit is requested, check if we're at that commit
   if (config.commit) {
-    const currentCommit = await getRepoFullCommit(config.name);
+    const currentCommit = await getRepoCommit(config.name, true);
     return !currentCommit?.startsWith(config.commit.substring(0, 7));
   }
 
