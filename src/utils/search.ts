@@ -228,10 +228,12 @@ function manualSearch(
       ignore: ["**/node_modules/**", "**/.git/**"],
     });
 
-    const searchRegex = new RegExp(
-      query,
-      caseSensitive ? "g" : "gi"
-    );
+    let searchRegex: RegExp;
+    try {
+      searchRegex = new RegExp(query, caseSensitive ? "g" : "gi");
+    } catch {
+      searchRegex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), caseSensitive ? "g" : "gi");
+    }
 
     for (const file of files) {
       if (results.length >= maxResults) break;
