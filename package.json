@@ -1,6 +1,6 @@
 {
   "name": "aztec-mcp-server",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "MCP server for Aztec development - clones and searches Aztec documentation and examples",
   "type": "module",
   "main": "dist/index.js",
@@ -11,7 +11,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm test && npm run build"
   },
   "keywords": [
     "aztec",
@@ -30,12 +32,13 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "simple-git": "^3.27.0",
-    "globby": "^14.0.2"
+    "globby": "^14.0.2",
+    "simple-git": "^3.27.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=18.0.0"
