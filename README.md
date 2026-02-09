@@ -36,7 +36,7 @@ Add to your `.mcp.json`:
   "mcpServers": {
     "aztec-local": {
       "command": "npx",
-      "args": ["-y", "aztec-mcp-server"]
+      "args": ["-y", "aztec-mcp-server@latest"]
     }
   }
 }
